@@ -77,6 +77,14 @@ export const nextJsConfig = [
       "local/require-server-action-suffix": "error",
     },
   },
+  {
+    // A deep cross-domain import reaches past a domain's public index.ts, so it
+    // is an error even outside agent mode.
+    files: ["**/src/app/_domains/**/*.{ts,tsx}"],
+    rules: {
+      "local/no-cross-domain-deep-import": "error",
+    },
+  },
   // Transition: the pre-migration tRPC procedure files all carry a module-level
   // `"use server"`. Steps 2 and 3 move them into `_services/`; drop this entry
   // then so the rule covers them too.
@@ -87,6 +95,20 @@ export const nextJsConfig = [
     },
   },
   // --- Agent rules (enabled via ESLINT_AGENT_RULES=1) ---
+  {
+    files: ["**/*.{ts,tsx}"],
+    rules: {
+      "local/no-client-import-of-services": agent,
+      // Step 3 creates `src/server/errors/`; the rule guards nothing until then.
+      "local/no-client-import-of-server-errors": "off",
+    },
+  },
+  {
+    files: ["**/_features/**/*.{ts,tsx}"],
+    rules: {
+      "local/no-feature-nesting": agent,
+    },
+  },
   {
     files: ["**/_services/**/*.{ts,tsx}"],
     rules: {
@@ -116,9 +138,19 @@ export const nextJsConfig = [
     },
   },
   {
-    files: ["**/src/app/_features/**/*.{ts,tsx}"],
+    files: [
+      "**/src/app/_domains/**/*.{ts,tsx}",
+      // Transition: `_features/` sits at the app root until step 2 moves it under
+      // `_domains/`. Drop this glob then.
+      "**/src/app/_features/**/*.{ts,tsx}",
+    ],
     rules: {
       "local/no-default-export": domainRulesSeverity,
+    },
+  },
+  {
+    files: ["**/src/app/_features/**/*.{ts,tsx}"],
+    rules: {
       "local/require-use-client-suffix": enableAgentRules
         ? [
             agent,
