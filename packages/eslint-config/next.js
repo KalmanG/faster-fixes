@@ -88,14 +88,13 @@ export const nextJsConfig = [
   },
   // --- Agent rules (enabled via ESLINT_AGENT_RULES=1) ---
   {
-    files: [
-      "**/*.trpc.query.ts",
-      "**/*.trpc.query.tsx",
-      "**/*.trpc.mutation.ts",
-      "**/*.trpc.mutation.tsx",
-    ],
+    files: ["**/_services/**/*.{ts,tsx}"],
     rules: {
-      "local/require-trpc-output-type": agent,
+      "local/services-verb-prefix": servicesRulesSeverity,
+      "local/services-no-trpc-import": servicesRulesSeverity,
+      "local/require-trpc-output-type": servicesRulesSeverity,
+      // Step 4 makes this one always-on.
+      "local/services-no-bare-error": servicesRulesSeverity,
     },
   },
   {
