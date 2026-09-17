@@ -38,11 +38,11 @@ export const JiraReconnectRequired = ({
               </Text>
 
               <Text className="mt-0 mb-[24px] text-[16px] leading-[24px] text-foreground">
-                The Jira authorization for <strong>{organizationName}</strong> is
-                no longer valid, so Faster Fixes has stopped syncing with{" "}
-                <strong>{siteName}</strong>. This usually happens when the person
-                who connected Jira loses access to the site or revokes the
-                authorization.
+                The Jira authorization for <strong>{organizationName}</strong>{" "}
+                is no longer valid, so Faster Fixes has stopped syncing with{" "}
+                <strong>{siteName}</strong>. This usually happens when the
+                person who connected Jira loses access to the site or revokes
+                the authorization.
               </Text>
 
               <Text className="mt-0 mb-[32px] text-[16px] leading-[24px] text-foreground">
@@ -60,8 +60,8 @@ export const JiraReconnectRequired = ({
               </Section>
 
               <Text className="mt-0 mb-[24px] text-[14px] leading-[20px] text-muted-foreground">
-                If you can&apos;t click the button, copy and paste this link into
-                your browser:
+                If you can&apos;t click the button, copy and paste this link
+                into your browser:
               </Text>
 
               <Text className="mt-0 mb-[32px] text-[14px] break-all text-muted-foreground">

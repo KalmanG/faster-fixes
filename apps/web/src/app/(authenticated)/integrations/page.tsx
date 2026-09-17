@@ -3,6 +3,7 @@ import { JiraIcon } from "@workspace/ui/components/icons/jira-icon";
 import { LinearIcon } from "@workspace/ui/components/icons/linear-icon";
 import { McpIcon } from "@workspace/ui/components/icons/mcp-icon";
 import { SlackIcon } from "@workspace/ui/components/icons/slack-icon";
+import Link from "next/link";
 import { DashboardSection } from "@/app/(authenticated)/_features/dashboard/dashboard-section";
 import { DashboardPageContent } from "@/app/_features/core/dashboard/dashboard-page-content";
 import { AgentTokensSection } from "./_features/agent-tokens/agent-tokens-section.client";
@@ -81,12 +82,12 @@ export default function IntegrationsPage() {
           description={
             <>
               API tokens for authenticating the Faster Fixes MCP server.{" "}
-              <a
+              <Link
                 href="/docs/mcp/setup"
                 className="text-primary underline underline-offset-4 hover:text-primary/80"
               >
                 Setup guide
-              </a>
+              </Link>
             </>
           }
           cardTitle="MCP Server"

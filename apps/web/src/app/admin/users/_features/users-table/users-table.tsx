@@ -71,7 +71,7 @@ const columns: ColumnDef<GetPaginatedUsersOutput["users"][number]>[] = [
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Created at" />
     ),
-    cell: ({ row, getValue }) => {
+    cell: ({ getValue }) => {
       const date = new Date(getValue<string>());
       return <div>{date.toLocaleDateString("en-US")}</div>;
     },

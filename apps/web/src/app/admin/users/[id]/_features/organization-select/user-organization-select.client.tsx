@@ -50,7 +50,7 @@ export function UserOrganizationSelect({
           <SelectValue placeholder={placeholder} />
         </SelectTrigger>
         <SelectContent>
-          {organizationsQuery.data?.map((org: any) => (
+          {organizationsQuery.data?.map((org) => (
             <SelectItem key={org.id} value={org.id}>
               {org.name}
             </SelectItem>

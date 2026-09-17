@@ -21,9 +21,17 @@ export const sendVerificationEmail = publicProcedure
         success: true,
         message: "Verification email sent successfully.",
       };
-    } catch (error: any) {
-      // Handle Better Auth errors
-      if (error?.message?.includes("not found") || error?.statusCode === 404) {
+    } catch (error) {
+      // Better Auth reports a missing account as a 404 APIError rather than a
+      // distinct error class, so both shapes have to be probed.
+      const isUnknownAccount =
+        (error instanceof Error && error.message.includes("not found")) ||
+        (typeof error === "object" &&
+          error !== null &&
+          "statusCode" in error &&
+          error.statusCode === 404);
+
+      if (isUnknownAccount) {
         throw new Error("This user does not exist.");
       }
 

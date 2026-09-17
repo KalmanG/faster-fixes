@@ -14,7 +14,7 @@ export function UsersnapFitSection() {
       <div className="container mx-auto px-4">
         <div className="mx-auto max-w-2xl text-center">
           <p className="text-muted-foreground mb-3 text-sm font-semibold tracking-wider uppercase">
-            Who it's for
+            Who it&apos;s for
           </p>
           <h2 className="text-3xl font-bold md:text-4xl">
             FasterFixes is the right fit if

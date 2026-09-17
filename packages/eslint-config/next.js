@@ -11,12 +11,24 @@ import { localRulesPlugin } from "./local-rules/index.js";
 
 const enableAgentRules = process.env.ESLINT_AGENT_RULES === "1";
 
+// Convention rules ramp in as warnings: the count per rule is the migration
+// burn-down metric, so they must not fail `lint:agent-rules`.
+const agent = enableAgentRules ? "warn" : "off";
+// Step 3 flips this to "error" per migrated `_services/` scope.
+const servicesRulesSeverity = agent;
+// Step 2 flips this to "error" per migrated `_domains/` scope.
+const domainRulesSeverity = agent;
+
 /**
  * A custom ESLint configuration for libraries that use Next.js.
  *
  * @type {import("eslint").Linter.Config}
  * */
 export const nextJsConfig = [
+  // Next.js and Fumadocs write these; they are build output, not source.
+  {
+    ignores: [".next/**", ".source/**", "next-env.d.ts"],
+  },
   ...baseConfig,
   js.configs.recommended,
   eslintConfigPrettier,
@@ -52,24 +64,68 @@ export const nextJsConfig = [
       "react/prop-types": "off",
     },
   },
-  // --- Agent rules (enabled via ESLINT_AGENT_RULES=1) ---
+  // --- Always-on rules (independent of the agent gate) ---
   {
-    files: [
-      "**/*.trpc.query.ts",
-      "**/*.trpc.query.tsx",
-      "**/*.trpc.mutation.ts",
-      "**/*.trpc.mutation.tsx",
-    ],
     rules: {
-      "local/require-trpc-output-type": enableAgentRules ? "error" : "off",
+      // Only Error instances carry a stack, so only they may be thrown.
+      "no-throw-literal": "error",
     },
   },
   {
-    files: ["**/*.{ts,tsx,js,jsx}"],
+    files: ["**/*.{ts,tsx}"],
+    rules: {
+      "local/require-server-action-suffix": "error",
+    },
+  },
+  {
+    // A deep cross-domain import reaches past a domain's public index.ts, so it
+    // is an error even outside agent mode.
+    files: ["**/src/app/_domains/**/*.{ts,tsx}"],
+    rules: {
+      "local/no-cross-domain-deep-import": "error",
+    },
+  },
+  // Transition: the pre-migration tRPC procedure files all carry a module-level
+  // `"use server"`. Steps 2 and 3 move them into `_services/`; drop this entry
+  // then so the rule covers them too.
+  {
+    files: ["**/*.trpc.query.{ts,tsx}", "**/*.trpc.mutation.{ts,tsx}"],
+    rules: {
+      "local/require-server-action-suffix": "off",
+    },
+  },
+  // --- Agent rules (enabled via ESLINT_AGENT_RULES=1) ---
+  {
+    files: ["**/*.{ts,tsx}"],
+    rules: {
+      "local/no-client-import-of-services": agent,
+      // Step 3 creates `src/server/errors/`; the rule guards nothing until then.
+      "local/no-client-import-of-server-errors": "off",
+    },
+  },
+  {
+    files: ["**/_features/**/*.{ts,tsx}"],
+    rules: {
+      "local/no-feature-nesting": agent,
+    },
+  },
+  {
+    files: ["**/_services/**/*.{ts,tsx}"],
+    rules: {
+      "local/services-verb-prefix": servicesRulesSeverity,
+      "local/services-no-trpc-import": servicesRulesSeverity,
+      "local/require-trpc-output-type": servicesRulesSeverity,
+      // Step 4 makes this one always-on.
+      "local/services-no-bare-error": servicesRulesSeverity,
+    },
+  },
+  {
+    // Class strings show up in every file type the app lints, so this one is
+    // not scoped to a glob.
     rules: {
       "local/no-raw-tailwind-colors": enableAgentRules
         ? [
-            "error",
+            agent,
             {
               // Allow explicit palette classes for charting or third-party styling edge-cases.
               allowPatterns: [
@@ -83,12 +139,22 @@ export const nextJsConfig = [
     },
   },
   {
-    files: ["**/src/app/_features/**/*.{ts,tsx}"],
+    files: [
+      "**/src/app/_domains/**/*.{ts,tsx}",
+      // Transition: `_features/` sits at the app root until step 2 moves it under
+      // `_domains/`. Drop this glob then.
+      "**/src/app/_features/**/*.{ts,tsx}",
+    ],
     rules: {
-      "local/no-default-export": enableAgentRules ? "error" : "off",
+      "local/no-default-export": domainRulesSeverity,
+    },
+  },
+  {
+    files: ["**/src/**/*.{ts,tsx}"],
+    rules: {
       "local/require-use-client-suffix": enableAgentRules
         ? [
-            "error",
+            agent,
             {
               // Ignore Next.js page/layout/route files which need default exports or 'use client' without .client suffix
               ignorePathPatterns: [
@@ -111,7 +177,8 @@ export const nextJsConfig = [
   {
     files: ["**/*.schema.ts"],
     rules: {
-      "local/require-schema-conventions": enableAgentRules ? "error" : "off",
+      "local/require-schema-conventions": agent,
+      "local/schema-must-be-pure-zod": agent,
     },
   },
 ];

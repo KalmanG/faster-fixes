@@ -9,12 +9,10 @@ import { toast } from "sonner";
 
 interface ManageSubscriptionButtonProps
   extends React.ComponentProps<"button">, VariantProps<typeof buttonVariants> {
-  onSuccess?: () => void;
   asChild?: boolean;
 }
 
 export function ManageSubscriptionButton({
-  onSuccess,
   className,
   disabled,
   ...props

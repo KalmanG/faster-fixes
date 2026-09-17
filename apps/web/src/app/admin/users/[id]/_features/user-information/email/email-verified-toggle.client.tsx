@@ -30,7 +30,7 @@ export function EmailVerifiedToggle({
 
         queryClient.setQueryData(
           trpc.admin.users.email.get.queryOptions({ userId }).queryKey,
-          (old: any) =>
+          (old) =>
             old
               ? {
                 ...old,

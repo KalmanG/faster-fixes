@@ -1,10 +1,10 @@
 # Architecture: app folder structure
 
-Where code goes in `apps/web/src/app/`. Authority: `docs/adr/0006-app-folder-architecture.md` and `docs/adr/0009-server-file-conventions-services-over-suffix.md`. The data/IO layer itself is specified in [backend.md](backend.md).
+Where code goes in `apps/web/src/app/`. Authority: `docs/architecture/migration-kit/adrs/app-folder-architecture.md` and `docs/architecture/migration-kit/adrs/server-file-conventions.md`. The data/IO layer itself is specified in [backend.md](backend.md).
 
 `apps/web/src/app/` is organised into **two tiers** with the **same bucket structure** at each tier:
 
-- **Domain tier**: `src/app/_domains/<domain>/` — reusable, cross-route, scoped to a domain entity from `docs/product/ubiquitous-language.md`.
+- **Domain tier**: `src/app/_domains/<domain>/` — reusable, cross-route, scoped to a domain entity from `CONTEXT.md`.
 - **Route tier**: `src/app/[route]/` — bound to a specific route.
 
 Each scope (domain or route segment) uses the same buckets and nothing else:
@@ -12,7 +12,7 @@ Each scope (domain or route segment) uses the same buckets and nothing else:
 ```
 trpc-router.ts   thin tRPC transport at the scope ROOT (not a bucket; one per scope)
 _services/       data/IO layer: verb-prefixed reads, writes, IO-predicates, *.schema.ts, *.inngest.ts — transport-agnostic, lazy
-_helpers/        pure behavioral functions only (formatters, labels, calculators, parsers, cache-tags, pure predicates) — no IO, no JSX, no state
+_helpers/        pure behavioral functions only (formatters, labels, calculators, parsers, pure predicates) — no IO, no JSX, no state
 _types/          standalone shared isomorphic domain types — lazy
 _features/       capability slices (UI + container hooks; needs UI, a schema, or a service slice)
 _components/     pure UI bound to this scope, no schema, no server
@@ -64,7 +64,7 @@ _domains/animal/
     └── animal.schema.ts
 ```
 
-- Each domain folder is named after a canonical term in `docs/product/ubiquitous-language.md`.
+- Each domain folder is named after a canonical term in `CONTEXT.md`.
 - `_services/`, `_helpers/`, `_types/` are created **lazily** — only when real shared code of that kind exists.
 - `_helpers/` is **pure** (no IO, no JSX, no React state). `_services/` is the only place IO lives outside a feature.
 - `trpc-router.ts` sits at the scope **root**, never inside `_services/` (services must not import tRPC).
@@ -108,16 +108,16 @@ A folder that is only a presentational component with no logic → `_components/
 
 ## File naming conventions
 
-| Item             | Pattern                  | Example                               |
-| ---------------- | ------------------------ | ------------------------------------- |
-| Client component | `[name].client.tsx`      | `profile-form.client.tsx`             |
-| Server component | `[name].server.tsx`      | `header.server.tsx`                   |
-| Hook             | `use-[name].ts`          | `use-animal-health-form.ts` (no `.client`) |
-| Service (read)   | `[read-verb]-[entity].ts`| `get-animal.ts`, `list-animals.ts`    |
-| Service (write)  | `[write-verb]-[entity].ts`| `create-animal.ts`, `update-animal.ts`|
-| Schema           | `[name].schema.ts`       | `animal.schema.ts` (inside `_services/`) |
-| Helper           | `[verb]-[noun].ts`       | `get-animal-age.ts`, `format-date.ts` |
-| tRPC router      | `trpc-router.ts`         | at the scope root                     |
+| Item             | Pattern                    | Example                                    |
+| ---------------- | -------------------------- | ------------------------------------------ |
+| Client component | `[name].client.tsx`        | `profile-form.client.tsx`                  |
+| Server component | `[name].server.tsx`        | `header.server.tsx`                        |
+| Hook             | `use-[name].ts`            | `use-animal-health-form.ts` (no `.client`) |
+| Service (read)   | `[read-verb]-[entity].ts`  | `get-animal.ts`, `list-animals.ts`         |
+| Service (write)  | `[write-verb]-[entity].ts` | `create-animal.ts`, `update-animal.ts`     |
+| Schema           | `[name].schema.ts`         | `animal.schema.ts` (inside `_services/`)   |
+| Helper           | `[verb]-[noun].ts`         | `get-animal-age.ts`, `format-date.ts`      |
+| tRPC router      | `trpc-router.ts`           | at the scope root                          |
 
 See [naming.md](naming.md) for the full read/write verb vocabulary.
 
@@ -132,7 +132,7 @@ See [naming.md](naming.md) for the full read/write verb vocabulary.
    - UI tied to a capability or its hook → `_features/`.
    - Pure UI, no logic → `_components/`.
    - tRPC procedures → inline into the scope-root `trpc-router.ts`.
-4. **Single- vs cross-consumer?** A data op goes to `_services/` regardless (even single-use). Promote a *feature* to the domain on its second route consumer.
+4. **Single- vs cross-consumer?** A data op goes to `_services/` regardless (even single-use). Promote a _feature_ to the domain on its second route consumer.
 
 ## Cross-domain import rules
 
@@ -150,7 +150,7 @@ When a **route feature** acquires a second consumer in a different route, **move
 
 1. **Underscore prefixes** are implementation folders and don't create routes.
 2. **Two tiers, same buckets** — one mental model at domain or route.
-3. **Domain entities drive `_domains/` naming** (match `docs/product/ubiquitous-language.md`).
+3. **Domain entities drive `_domains/` naming** (match `CONTEXT.md`).
 4. **Co-locate UI aggressively; centralize data ops in `_services/`.**
 5. **`_helpers/` is pure; `_services/` owns all IO.**
 6. **Domain encapsulation via `index.ts`.** No reach-ins across domains.

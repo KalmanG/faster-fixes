@@ -2,7 +2,7 @@
 
 Consistent verb/resource/file naming for functions, methods, and files across the codebase, in any language.
 
-> For `apps/web/src/app/**` the read/write verb vocabulary is governed by ADR-0009 ([backend.md](backend.md)). The verbs below are aligned with it; where they differ, the backend rule wins inside `_services/`.
+> For `apps/web/src/app/**` the read/write verb vocabulary is governed by the server-file-conventions ADR ([backend.md](backend.md)). The verbs below are aligned with it; where they differ, the backend rule wins inside `_services/`.
 
 ## Read verbs (never write)
 

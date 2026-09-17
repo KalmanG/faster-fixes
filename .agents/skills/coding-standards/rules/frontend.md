@@ -127,6 +127,8 @@ export function PostsList() {
 
 ## User-facing copy
 
-- French, always tutoiement (`tu`), never `vous`.
+- English only. Professional, clear, and concise: match the tone of serious developer tools
+  (Vercel, Linear, Stripe).
+- No marketing fluff, no casual language, no exclamation marks. Prefer precise, understated
+  wording.
 - Never use the em dash character; use a comma, colon, or period.
-- Use actual accented characters (é, è, à, ê), never unicode escapes.

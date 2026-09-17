@@ -55,7 +55,7 @@ export function UpgradeSubscriptionButton({
       planName,
       annual: isAnnual,
     });
-  }, [upgradePlanMutation, isAnnual]);
+  }, [upgradePlanMutation, isAnnual, pathname, planName, router]);
 
   return (
     <Button

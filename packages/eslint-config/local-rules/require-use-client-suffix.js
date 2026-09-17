@@ -1,7 +1,9 @@
 const USE_CLIENT_RE = /^['"]use client['"]/;
 const CLIENT_SUFFIX_RE = /\.client\.tsx$/;
-// Hooks and context files legitimately use 'use client' without the .client.tsx suffix
-const EXEMPT_FILENAME_RE = /(?:^use-[a-z].*\.ts$|\.context\.tsx$)/;
+// Hooks and context files legitimately use 'use client' without the .client.tsx suffix.
+// Hooks are `use-*.ts` (or `use-*.tsx` when they also export a JSX provider) and never
+// carry the `.client` suffix (ADR-0009 / decision 14); `.client.tsx` is reserved for components.
+const EXEMPT_FILENAME_RE = /(?:^use-[a-z][\w-]*\.tsx?$|\.context\.tsx$)/;
 
 export const requireUseClientSuffixRule = {
   meta: {

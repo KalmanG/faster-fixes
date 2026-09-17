@@ -6,17 +6,17 @@ This document is the reference for the migration kit in `migration-kit/`. It des
 
 ## Core files (in this repo)
 
-| File                                                            | Role                                          |
-| --------------------------------------------------------------- | --------------------------------------------- |
-| `docs/adr/0006-app-folder-architecture.md`                      | Two tiers, buckets, per-domain public API     |
-| `docs/adr/0009-server-file-conventions-services-over-suffix.md` | `_services/`, verb prefixes, thin routers     |
-| `docs/adr/0010-domain-errors-and-transport-mapping.md`          | `DomainError` vocabulary and boundary mapping |
-| `docs/adr/0007-package-extraction-boundaries.md`                | When code earns a workspace package           |
-| `.claude/skills/coding-standards/`                              | The rule files agents load while coding       |
-| `packages/eslint-config/next.js`                                | Rule wiring and severity gating               |
-| `packages/eslint-config/local-rules/`                           | The custom ESLint rules                       |
-| `apps/web/src/server/errors/`                                   | Domain errors and boundary helpers            |
-| `apps/web/src/server/trpc/trpc.ts`                              | tRPC init, procedures, error middleware       |
+| File                                                                          | Role                                                                                   |
+| ----------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
+| `docs/architecture/migration-kit/adrs/app-folder-architecture.md`             | Two tiers, buckets, per-domain public API. Becomes an ADR under `docs/adr/` in step 2. |
+| `docs/architecture/migration-kit/adrs/server-file-conventions.md`             | `_services/`, verb prefixes, thin routers. Becomes an ADR in step 3.                   |
+| `docs/architecture/migration-kit/adrs/domain-errors-and-transport-mapping.md` | `DomainError` vocabulary and boundary mapping. Becomes an ADR in step 4.               |
+| `docs/architecture/migration-kit/adrs/package-extraction-boundaries.md`       | When code earns a workspace package. Becomes an ADR in step 5.                         |
+| `.claude/skills/coding-standards/`                                            | The rule files agents load while coding                                                |
+| `packages/eslint-config/next.js`                                              | Rule wiring and severity gating                                                        |
+| `packages/eslint-config/local-rules/`                                         | The custom ESLint rules                                                                |
+| `apps/web/src/server/errors/`                                                 | Domain errors and boundary helpers. Created in step 3.                                 |
+| `apps/web/src/server/trpc/trpc.ts`                                            | tRPC init, procedures, error middleware                                                |
 
 ## How to read this document
 
@@ -24,7 +24,9 @@ Every statement falls into one of three classes:
 
 - **Invariant**: holds in any project adopting this architecture. Unmarked statements are invariants.
 - **If present**: applies only when the project has the underlying mechanism (marked `[if present]`).
-- **Tobalgo-specific**: exists here for local reasons and is not part of the exported architecture (marked `[Tobalgo]`).
+- **Faster Fixes-specific**: holds here for local reasons and is not part of the exported architecture (marked `[Faster Fixes]`).
+
+**Status.** This is the end state, not the current state of `apps/web`. Steps 2 to 5 of the kit have not run: `src/app/_domains/`, the per-scope `_services/` folders and `src/server/errors/` do not exist yet, and domain code still sits under `src/app/_features/`. New code follows this document; inside a scope that has not been migrated, follow the folder's existing conventions and do not mix the two. `docs/_migration/README.md` tracks what is migrated and what is not.
 
 The frontend and code-shape conventions (React components, `matchQueryStatus`, forms, Tailwind, TypeScript style, file size) are **not** repeated here. They live in the `coding-standards` skill, which is copied alongside this document. This document covers structure, layers, boundaries, and enforcement.
 
@@ -55,10 +57,13 @@ The repo is a pnpm + Turborepo monorepo. Only the shape matters here.
 apps/
   web/            # the Next.js app this document describes
 packages/
-  database/       # @repo/db: Prisma schema, migrations, generated client
-  ui/             # @repo/ui: domain-agnostic design-system primitives
-  eslint-config/  # @repo/eslint-config: shared configs + local-rules/
+  database/       # @workspace/db: Prisma schema, migrations, generated client
+  ui/             # @workspace/ui: domain-agnostic design-system primitives
+  eslint-config/  # @workspace/eslint-config: shared configs + local-rules/
   typescript-config/
+  widget-core/    # [Faster Fixes] @fasterfixes/core: published widget runtime
+  widget-react/   # [Faster Fixes] @fasterfixes/react: published React bindings
+  mcp/            # [Faster Fixes] @fasterfixes/mcp: published MCP server
   <domain-pkg>/   # [if present] packages that 2+ apps consume, see "Packages"
 ```
 
@@ -118,7 +123,7 @@ When a route feature gains a second consumer in a different route, **move the wh
 
 ## The services layer
 
-`_services/` is the data/IO layer of a scope. Authority: ADR-0009.
+`_services/` is the data/IO layer of a scope. Authority: `docs/architecture/migration-kit/adrs/server-file-conventions.md`.
 
 - **Plain-named after the export, with a verb prefix.** `get-user.ts` exports `getUser`. No role suffixes (`*.server.query.ts`, `*.trpc.mutation.ts` are gone).
 - **All data operations live here, even single-use.** Clutter is controlled by route-tree granularity (each segment owns its own `_services/` and router) and, secondarily, by subfolders when three or more files cluster.
@@ -162,7 +167,7 @@ export const appRouter = router({
 
 ## Domain errors and transport mapping
 
-Authority: ADR-0010. Expected failures are domain facts, not transport facts, and there is exactly one vocabulary for them.
+Authority: `docs/architecture/migration-kit/adrs/domain-errors-and-transport-mapping.md`. Expected failures are domain facts, not transport facts, and there is exactly one vocabulary for them.
 
 ### The vocabulary
 
@@ -231,19 +236,19 @@ Client code never imports `src/server/errors/*` and never uses `instanceof Domai
 - The barrel exports **contracts**: UI components, `*.schema.ts`, domain types, parsers, pure helpers, and type-only re-exports from `_services/`. It never exports a service function or the router.
 - Routes and `app/api/` are the composition layer and may reach into a domain's internals.
 - If a domain seems to need another domain's server implementation, one of three moves applies: wrap the data in a server component and export that; move the operation to the domain that owns it; lift the abstraction to `src/server/` or a package so both depend on it. A second "server barrel" is not an option.
-- No cross-domain cycles. Soft hierarchy: low-level domains (`user`, `geo`) should not depend on high-level ones (`billing`, `conversation`).
+- No cross-domain cycles. Soft hierarchy: low-level domains (`user`, `organization`) should not depend on high-level ones (`subscription`, `feedback`).
 
 ## Packages
 
-Authority: ADR-0007, amended below.
+Authority: `docs/architecture/migration-kit/adrs/package-extraction-boundaries.md`, amended below.
 
 - **A package exists to reuse code across consumers, not because it is generic.** The gate is "consumed by two or more apps, or by an external consumer" (see amendment). Create it when the second consumer appears, never speculatively.
-- **Layered, acyclic.** Layer 0 foundations (`db`, `ui`, `geo`) depend on no internal package. Layer 1 domain packages depend on layer 0. Layer 2 apps depend on anything.
-- **`@repo/ui` is domain-agnostic primitives only**, the package analogue of root `_components/`.
-- **A domain package is named after the domain**, with subpath entry points separating server logic from client UI (`@repo/<domain>/search`, `@repo/<domain>/ui`).
+- **Layered, acyclic.** Layer 0 foundations (`db`, `ui`) depend on no internal package. Layer 1 domain packages depend on layer 0. Layer 2 apps depend on anything.
+- **`@workspace/ui` is domain-agnostic primitives only**, the package analogue of root `_components/`.
+- **A domain package is named after the domain**, with subpath entry points separating server logic from client UI (`@workspace/<domain>/search`, `@workspace/<domain>/ui`).
 - **Share query result types, not presentation DTOs.**
 - **Amendment for published packages.** A package published to npm has an external consumer by definition, so it satisfies the reuse gate. Its internal structure follows its own conventions and is out of scope of the bucket architecture, which applies to `apps/` only. It must still respect the layering: it never imports an app.
-- `[Tobalgo]` `@repo/professional`, `@repo/geo`, `@repo/assets`, `@repo/payload` are the concrete extractions here.
+- `[Faster Fixes]` The concrete extractions here are the three published packages: `@fasterfixes/core` (widget runtime), `@fasterfixes/react` (React bindings) and `@fasterfixes/mcp` (MCP server). All three qualify under the published-package amendment, and all three are consumed outside this repo. No internal domain package exists yet.
 
 ## Cache tags `[if present]`
 
@@ -259,12 +264,12 @@ The architecture holds because it is enforced, not because it is documented.
 
 ### Commands and required checks
 
-| Command                 | What it runs                                                     |
-| ----------------------- | ---------------------------------------------------------------- |
-| `pnpm typecheck`        | `tsc --noEmit` in every workspace                                |
-| `pnpm lint`             | ESLint with `--max-warnings 0`, always-on rules only             |
-| `pnpm lint:agent-rules` | Same, with `ESLINT_AGENT_RULES=1`, enabling the convention rules |
-| `pnpm test`             | Vitest in every workspace                                        |
+| Command                 | What it runs                                                                                                                                                                                                     |
+| ----------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `pnpm typecheck`        | `tsc --noEmit` in every workspace                                                                                                                                                                                |
+| `pnpm lint`             | ESLint with `--max-warnings 0`, always-on rules only                                                                                                                                                             |
+| `pnpm lint:agent-rules` | Same, with `ESLINT_AGENT_RULES=1`, enabling the convention rules. `[Faster Fixes]` It drops `--max-warnings 0` until the end of step 4: zero errors required, warnings counted per rule as the burn-down metric. |
+| `pnpm test`             | Vitest in every workspace                                                                                                                                                                                        |
 
 The pre-commit hook runs typecheck, tests, and lint-staged. An agent never declares work done while any required check fails.
 
@@ -272,24 +277,27 @@ The pre-commit hook runs typecheck, tests, and lint-staged. An agent never decla
 
 Rules live in `packages/eslint-config/local-rules/` and are wired in `packages/eslint-config/next.js` under the `local/` plugin namespace. Most are gated behind `ESLINT_AGENT_RULES=1` so the plain `pnpm lint` stays fast and stable while agents get the full set. A few are always on because their violation is a security or correctness problem, not a style one.
 
-| Rule                                | Scope                 | Enforces                                                                                                                             | Gate   |
-| ----------------------------------- | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------ | ------ |
-| `services-verb-prefix`              | `**/_services/**`     | Basename is `<lowercase-verb>-<entity>`; bans `edit-`, `modify-`, `save-`, `change-`.                                                | agent  |
-| `services-no-trpc-import`           | `**/_services/**`     | A service never imports the tRPC server or client modules.                                                                           | agent  |
-| `require-trpc-output-type`          | `**/_services/**`     | A read service exports `Awaited<ReturnType<typeof x>>` as its type. Tests exempt.                                                    | agent  |
-| `services-no-bare-error`            | `**/_services/**`     | No `throw new Error(...)`; throw a `DomainError` subclass. Rethrowing a caught variable is allowed.                                  | always |
-| `no-client-import-of-services`      | all                   | A `'use client'` or `*.client.tsx` module never imports `_services/*`, except `*.schema.ts` and type-only imports.                   | agent  |
-| `no-client-import-of-server-errors` | all                   | Client code never imports `src/server/errors/*`.                                                                                     | agent  |
-| `no-feature-nesting`                | `**/_features/**`     | A path never contains `_features/` twice.                                                                                            | agent  |
-| `schema-must-be-pure-zod`           | `**/*.schema.ts`      | No `@/server/`, no Prisma client, no non-schema sibling import. Generated enums allowed.                                             | agent  |
-| `require-schema-conventions`        | `**/*.schema.ts`      | PascalCase `XSchema` const, singular `Input` type suffix.                                                                            | agent  |
-| `no-cross-domain-deep-import`       | `src/app/_domains/**` | Another domain is imported only via its barrel.                                                                                      | always |
-| `no-default-export`                 | `src/app/_domains/**` | Named exports only.                                                                                                                  | agent  |
-| `require-use-client-suffix`         | `src/app/_domains/**` | A `'use client'` module is `*.client.tsx`; exempts `use-*` hooks and Next special files.                                             | agent  |
-| `require-server-action-suffix`      | all                   | A module-level `'use server'` only in `*.server.action.ts`.                                                                          | always |
-| `no-throw-literal` (built-in)       | all                   | Throw `Error` instances only.                                                                                                        | always |
-| `no-raw-tailwind-colors`            | all                   | `[optional]` Semantic color tokens over raw palette classes. Only useful with a token-based design system.                           | agent  |
-| `no-deprecated-error-imports`       | all                   | `[Tobalgo]` Bans this repo's retired error modules. A migrating project writes its own equivalent for its own retired paths, if any. | agent  |
+| Rule                                | Scope                 | Enforces                                                                                                           | Gate   |
+| ----------------------------------- | --------------------- | ------------------------------------------------------------------------------------------------------------------ | ------ |
+| `services-verb-prefix`              | `**/_services/**`     | Basename is `<lowercase-verb>-<entity>`; bans `edit-`, `modify-`, `save-`, `change-`.                              | agent  |
+| `services-no-trpc-import`           | `**/_services/**`     | A service never imports the tRPC server or client modules.                                                         | agent  |
+| `require-trpc-output-type`          | `**/_services/**`     | A read service exports `Awaited<ReturnType<typeof x>>` as its type. Tests exempt.                                  | agent  |
+| `services-no-bare-error`            | `**/_services/**`     | No `throw new Error(...)`; throw a `DomainError` subclass. Rethrowing a caught variable is allowed.                | always |
+| `no-client-import-of-services`      | all                   | A `'use client'` or `*.client.tsx` module never imports `_services/*`, except `*.schema.ts` and type-only imports. | agent  |
+| `no-client-import-of-server-errors` | all                   | Client code never imports `src/server/errors/*`.                                                                   | agent  |
+| `no-feature-nesting`                | `**/_features/**`     | A path never contains `_features/` twice.                                                                          | agent  |
+| `schema-must-be-pure-zod`           | `**/*.schema.ts`      | No `@/server/`, no Prisma client, no non-schema sibling import. Generated enums allowed.                           | agent  |
+| `require-schema-conventions`        | `**/*.schema.ts`      | PascalCase `XSchema` const, singular `Input` type suffix.                                                          | agent  |
+| `no-cross-domain-deep-import`       | `src/app/_domains/**` | Another domain is imported only via its barrel.                                                                    | always |
+| `no-default-export`                 | `src/app/_domains/**` | Named exports only.                                                                                                | agent  |
+| `require-use-client-suffix`         | `src/**`              | A `'use client'` module is `*.client.tsx`; exempts `use-*` hooks and Next special files.                           | agent  |
+| `require-server-action-suffix`      | all                   | A module-level `'use server'` only in `*.server.action.ts`.                                                        | always |
+| `no-throw-literal` (built-in)       | all                   | Throw `Error` instances only.                                                                                      | always |
+| `no-raw-tailwind-colors`            | all                   | `[optional]` Semantic color tokens over raw palette classes. Only useful with a token-based design system.         | agent  |
+
+Fourteen custom rules, exported by `packages/eslint-config/local-rules/index.js`, plus the built-in `no-throw-literal`. Each custom rule has a `RuleTester` test beside it, run by `pnpm test`.
+
+`require-use-client-suffix` runs on all of `src/**`, wider than the domain tier: the `.client.tsx` naming applies wherever a `'use client'` file lives, and a naming convention that holds in one folder only is half a convention.
 
 ### Severity ramp during a migration
 
@@ -305,16 +313,19 @@ A rule that cannot yet pass everywhere is introduced at `warn`, then locked to `
 - Test only pure `_helpers/` and dependency-injected `_services/`. Components, hooks, and routers are out of scope until a real need appears.
 - No module mocks. Inject fakes through parameters. If logic worth testing is trapped behind a singleton, extract it down into a helper or an injectable service.
 
-## Tobalgo-specific, not exported
+`[Faster Fixes]` The harness matches that policy and nothing more. `apps/web/vitest.config.ts` runs `environment: "node"`, resolves the `@/*` alias through Vite's native tsconfig path resolution, pins `TZ` to `UTC` so date assertions hold on every machine, and loads no setup file. There is no jsdom and no `@testing-library/*`: they are added the day the first component test exists, not before, so the installed harness and the documented policy stay in agreement. `apps/web/src/utils/crypto/token-cipher.test.ts` is the reference test. The custom ESLint rules have their own Vitest project in `packages/eslint-config`; both run under `pnpm test` through Turbo.
 
-These exist in this repo and are **not** part of the target architecture:
+## Faster Fixes-specific, not exported
 
-- Kilpi authorization policies under `src/server/kilpi/` and the `Kilpi.<resource>.<action>().authorize().assert()` calls in procedures.
-- `next-safe-action` and `src/server/safe-action.ts`.
-- Payload CMS (`apps/cms`, `@repo/payload`) and the `content` domain.
-- Subscription-aware procedures (`subscribedProcedure`, `trainerProcedure`) and activity modules.
-- French user-facing copy with tutoiement, and the no-em-dash rule for UI text. The language rule that survives is "identifiers, comments, filenames, schemas in English".
-- The cache-tag registry, when the adopting project has no `unstable_cache`.
+These statements hold in this repo and are **not** part of the exported architecture. A project adopting the architecture decides each one for itself.
+
+- **Inngest is present.** Durable jobs live under `src/server/inngest/`, so the Inngest boundary row of the mapping table and the `*.inngest.ts` service convention are live here rather than `[if present]`.
+- **No authorization library.** There is no Kilpi and no policy layer. Authorization is asserted in the tRPC procedure; a denial becomes a `ForbiddenError` (403) once the vocabulary lands in step 4.
+- **No `next-safe-action`.** There is no action client, so the server-action row of the mapping table has no implementation here. `require-server-action-suffix` still runs as an always-on error, so a module-level `'use server'` cannot appear under an unmarked filename.
+- **No cache tags.** The app uses no `unstable_cache` and no tag-based revalidation, so the "Cache tags" section is inert and `src/server/cache/` does not exist.
+- **English user-facing copy**, professional and understated, no exclamation marks, no em dash character. Identifiers, comments, filenames and schemas are English too.
+- **`no-throw-literal` is on as an error** outside the agent gate, so only `Error` instances are thrown anywhere in the repo.
+- **Three published npm packages** under `packages/`: `@fasterfixes/core`, `@fasterfixes/react`, `@fasterfixes/mcp`. They are released from `main` by CI through Changesets, and their internal structure follows their own conventions: the bucket architecture applies to `apps/` only.
 
 ## Rules
 
@@ -323,6 +334,6 @@ These exist in this repo and are **not** part of the target architecture:
 - Services never import tRPC and never throw anything but `DomainError` subclasses for expected failures.
 - `trpc-router.ts` is thin transport at the scope root, composing hierarchically.
 - Domains talk to each other through `index.ts` only, and the barrel exports contracts, never implementations.
-- Root `_*` folders and `@repo/ui` are domain-agnostic.
+- Root `_*` folders and `@workspace/ui` are domain-agnostic.
 - A package exists for a second consumer, never for purity.
 - A convention exists as a lint rule when it can be statically decided; the rule file explains it, the lint enforces it.

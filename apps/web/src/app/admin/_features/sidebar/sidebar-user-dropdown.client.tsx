@@ -48,7 +48,6 @@ export function SidebarUserDropdown() {
   const { isMobile } = useSidebar();
   const handleSignOut = useSignOut();
 
-  const isAdmin = session?.user.role === "admin";
   const userName =
     session?.user.firstName && session?.user.lastName
       ? `${session?.user.firstName} ${session?.user.lastName}`

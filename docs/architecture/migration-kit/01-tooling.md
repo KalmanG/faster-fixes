@@ -78,12 +78,19 @@ Rules present in `index.js` under the `local/` namespace:
 | `require-schema-conventions`        | `**/*.schema.ts`                    | `warn` (agent)                                                         |
 | `no-cross-domain-deep-import`       | `**/src/app/_domains/**/*.{ts,tsx}` | `error` (always on; the folder does not exist yet, so zero violations) |
 | `no-default-export`                 | `**/src/app/_domains/**/*.{ts,tsx}` | `warn` (agent)                                                         |
-| `require-use-client-suffix`         | `**/src/app/_domains/**/*.{ts,tsx}` | `warn` (agent), with the Next special-file ignore patterns             |
+| `require-use-client-suffix`         | `**/src/**/*.{ts,tsx}`              | `warn` (agent), with the Next special-file ignore patterns             |
 | `require-server-action-suffix`      | `**/*.{ts,tsx}`                     | `error` (always on)                                                    |
 | built-in `no-throw-literal`         | all                                 | `error` (always on)                                                    |
 | `no-raw-tailwind-colors`            | all                                 | optional; only with a semantic-token design system                     |
 
 "(agent)" means the severity applies only when `process.env.ESLINT_AGENT_RULES === "1"`, otherwise `off`. The gate keeps the plain lint stable while the tree is mid-migration.
+
+**Transition globs.** Two entries in the table above are wider than the target and must be narrowed later. Mark each one with a comment in `next.js` naming the step that removes it, so the transition does not become permanent:
+
+- `no-default-export` also runs on `**/src/app/_features/**/*.{ts,tsx}` while the root `_features/` folder still exists. Step 2 moves that folder under `_domains/` and the glob goes with it.
+- `require-server-action-suffix` is exempted on `**/*.trpc.query.{ts,tsx}` and `**/*.trpc.mutation.{ts,tsx}`, because every pre-migration tRPC procedure file carries a module-level `"use server"`. Step 3 moves those into `_services/` and the exemption is dropped.
+
+`require-use-client-suffix` runs on all of `src/**` rather than `_domains/**` only. That is a permanent widening, not a transition: the `.client.tsx` naming applies wherever a `"use client"` file lives, and a naming convention that holds in one folder only is half a convention. Record the widening in the target architecture document.
 
 The wiring in `next.js` reads the gate once and applies it per glob block. There is one constant per ramp so later steps can flip a whole group:
 
@@ -96,13 +103,13 @@ Scripts in `apps/web/package.json`:
 
 ```json
 "lint": "eslint --max-warnings 0",
-"lint:agent-rules": "ESLINT_AGENT_RULES=1 eslint --max-warnings 0",
+"lint:agent-rules": "ESLINT_AGENT_RULES=1 eslint .",
 "typecheck": "tsc --noEmit",
 "test": "vitest run",
 "test:watch": "vitest"
 ```
 
-Note that `--max-warnings 0` makes `warn` fail the command. That is intended for the final state. During the migration, run `pnpm lint:agent-rules` to **count** warnings per rule, and treat the count as the progress metric. Root `package.json` forwards through Turbo: `"lint:agent-rules": "turbo run lint:agent-rules --filter=web"`, and `turbo.json` declares the `lint:agent-rules` and `test` tasks.
+`lint:agent-rules` deliberately omits `--max-warnings 0` **for the duration of the migration**. `--max-warnings 0` makes `warn` fail the command, which is the right final state but keeps the command red from the first day of the migration to the last, and a command that is always red is never read. During the migration the contract is: zero errors required, warnings reported and counted per rule as the progress metric. Restore `--max-warnings 0` at the end of step 4, once every convention rule is locked to `error`. `lint` keeps `--max-warnings 0` throughout. Count warnings per rule with `pnpm lint:agent-rules | grep -o 'local/[a-z-]*' | sort | uniq -c`, and record the count in the migration log. Root `package.json` forwards through Turbo: `"lint:agent-rules": "turbo run lint:agent-rules --filter=web"`, and `turbo.json` declares the `lint:agent-rules` and `test` tasks.
 
 ### Git hooks
 
@@ -110,7 +117,9 @@ Note that `--max-warnings 0` makes `warn` fail the command. That is intended for
 
 ### Test harness
 
-Vitest is installed in `apps/web` (`vitest.config.mts`, `jsdom`, `vite-tsconfig-paths` for the `@/*` alias, a setup file for `@testing-library/jest-dom`), and in `packages/eslint-config` for the rule tests. `TZ` is pinned to `UTC` in the config so date tests are reproducible. Tests are colocated `*.test.ts`.
+Vitest is installed in `apps/web` and in `packages/eslint-config` for the rule tests. `TZ` is pinned to `UTC` in the config so date tests are reproducible. Tests are colocated `*.test.ts`.
+
+The harness matches the testing policy, which covers pure helpers and dependency-injected services, not components or hooks. In this repo that means `apps/web/vitest.config.ts` (a `.ts` config, not `.mts`), `environment: "node"`, the `@/*` alias resolved by Vite's native tsconfig path resolution, and no setup file. There is no jsdom and no `@testing-library/*`: they are added the day a component test exists, and not before, so the installed harness and the documented policy stay in agreement.
 
 ## What must be gone
 

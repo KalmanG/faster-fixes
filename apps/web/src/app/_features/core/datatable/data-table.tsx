@@ -10,6 +10,7 @@ import {
   getSortedRowModel,
   SortingState,
   TableMeta,
+  Updater,
   useReactTable,
   VisibilityState,
 } from "@tanstack/react-table";
@@ -76,7 +77,7 @@ export const DataTable = <TData, TValue>({
     React.useState<VisibilityState>({});
 
   // Handle sorting changes and call the callback
-  const handleSortingChange = (updaterOrValue: any) => {
+  const handleSortingChange = (updaterOrValue: Updater<SortingState>) => {
     const newSorting =
       typeof updaterOrValue === "function"
         ? updaterOrValue(sorting)

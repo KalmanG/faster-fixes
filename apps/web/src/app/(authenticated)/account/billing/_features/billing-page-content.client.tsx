@@ -7,13 +7,7 @@ import { CurrentPlanCard } from "./current-plan/current-plan-card.client";
 import { PastInvoicesCard } from "./past-invoices/past-invoices-card.client";
 import { SubscriptionStatusBanner } from "./subscription-status/subscription-status-banner.client";
 
-interface BillingPageContentProps {
-  organizationId: string;
-}
-
-export function BillingPageContent({
-  organizationId,
-}: BillingPageContentProps) {
+export function BillingPageContent() {
   const { isFreePlan } = usePlanGate();
 
   if (isFreePlan) {
@@ -42,7 +36,7 @@ export function BillingPageContent({
       <div className="mt-4">
         <div className="flex flex-col gap-4 lg:flex-row">
           <div className="lg:w-3/5">
-            <CurrentPlanCard organizationId={organizationId} />
+            <CurrentPlanCard />
           </div>
 
           <div className="lg:w-2/5">

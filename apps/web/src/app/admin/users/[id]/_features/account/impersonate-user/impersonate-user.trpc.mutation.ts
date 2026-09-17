@@ -6,7 +6,7 @@ import { ImpersonateUserSchema } from "./impersonate-user.schema";
 
 export const impersonateUser = adminProcedure
   .input(ImpersonateUserSchema)
-  .mutation(async ({ input, ctx }) => {
+  .mutation(async ({ input }) => {
     const { userId } = input;
 
     try {
