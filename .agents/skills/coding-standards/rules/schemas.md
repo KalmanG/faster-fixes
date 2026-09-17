@@ -1,0 +1,92 @@
+# Zod schema conventions
+
+Shared by the backend (tRPC `.input()`) and the frontend (form resolver), so this is its own rule.
+
+## Placement (apps/web)
+
+- A `*.schema.ts` lives in its scope's `_services/` folder (consumed by both the tRPC `.input()` and the client form resolver). See [backend.md](backend.md) and [architecture.md](architecture.md).
+- A schema must stay **pure-Zod**: no server-only imports (`@/server/`, Prisma client, sibling non-schema service). This keeps it safe to import from client forms without leaking server deps into the bundle.
+
+## File structure
+
+- **One exported schema per file by default.** The file is named after that schema's operation (`update-client.schema.ts`).
+- **Multiple schemas in one file only when they are tightly coupled** — a base schema plus the schema(s) composed from it, or pieces that assemble into one final schema defined in the **same** file (e.g. multi-step forms: `Step1Schema` + `Step2Schema` -> `SignupSchema`).
+- Do **not** split tightly-coupled schemas across files just to honor one-per-file. Do **not** bundle unrelated schemas into one file for convenience (no junk-drawer schema files).
+
+## Composition
+
+- **Cross-file composition is the norm and is encouraged.** The classic case is the create -> update pair: the update schema imports the create schema and extends it.
+
+  ```ts
+  // update-invoice.schema.ts
+  export const UpdateInvoiceSchema = CreateInvoiceSchema.extend({
+    id: z.string(),
+  });
+  ```
+
+- Use `.extend()`, `.partial()`, `.omit()` to derive schemas. A derived schema lives in its own file (one schema per file) unless it is tightly coupled to its base (see above).
+- **`.merge()` is deprecated in zod 4.** Spread the other schema's shape instead: `Base.extend(Other.partial().shape)`, or `z.object({ ...Base.shape, ...Other.shape })` for the best `tsc` performance.
+
+## Schema naming
+
+- **PascalCase**, suffixed with `Schema`: `CreateInvoiceSchema`.
+- **The prefix mirrors the service operation the schema validates** — the schema, the function, and the file all carry the same verb:
+  - `create-invoice.ts` -> `createInvoice` -> `CreateInvoiceSchema`
+  - `archive-specialization.ts` -> `archiveSpecialization` -> `ArchiveSpecializationSchema`
+- The verb set follows [naming.md](naming.md): generic CRUD verbs by default, a precise domain verb (`Archive`, `Restore`, `Reorder`, ...) when the operation is a distinct domain transition. Banned synonyms of `update` (`edit`/`modify`/`save`/`change`) are banned here too: it is `UpdateClientSchema`, not `EditClientSchema`.
+
+## Type extraction
+
+- Infer the type with `z.infer<typeof SchemaName>`.
+- **Name the type by replacing the `Schema` suffix with `Input`** — drop `Schema`, do not keep it:
+  - `CreateInvoiceSchema` -> `CreateInvoiceInput` (not `CreateInvoiceSchemaType`, not `CreateInvoiceSchemaInput`).
+- **Always singular `Input`** (one input object), never plural `Inputs`.
+- Rationale: these schemas exist to be the **input** to a tRPC mutation (`.input()`) and a form resolver, so the inferred type _is_ the input DTO. `Input` carries that meaning; a bare `Type` suffix is semantically empty.
+- Caveat: `Input` is correct because `*.schema.ts` here are mutation/form inputs by construction. If a schema ever validates something that is **not** input (an external API response, a parsed config), name the type for what it actually is.
+
+### The `Values` companion type (forms)
+
+`z.infer` is the **output** type. When a schema carries a `.default()` or a coercion, its **input** type differs: the defaulted key is optional on the way in and guaranteed on the way out. `zodResolver` (`@hookform/resolvers` v5) reflects that: it returns `Resolver<z.input<S>, Context, z.output<S>>`, so `useForm<XInput>` no longer typechecks against it.
+
+For those schemas, export a second type alongside `XInput`, named by replacing the `Schema` suffix with `Values`:
+
+```ts
+export const CreateToolSchema = z.object({
+  title: z.string().min(1, "Le titre est requis"),
+  order: z.number().int().min(0).optional().default(0),
+});
+
+export type CreateToolInput = z.infer<typeof CreateToolSchema>;
+
+// Pre-parse shape of the form: `order` is optional on the way in.
+export type CreateToolValues = z.input<typeof CreateToolSchema>;
+```
+
+and wire the form with both:
+
+```ts
+const form = useForm<CreateToolValues, unknown, CreateToolInput>({
+  resolver: zodResolver(CreateToolSchema),
+  defaultValues: { title: "", order: 0 },
+});
+```
+
+Only add `XValues` when input and output actually diverge. A schema with no `.default()` and no coercion keeps `XInput` alone, and `useForm<XInput>` stays correct.
+
+## Prisma integration
+
+- Use **`z.enum(PrismaEnum)`** for a Prisma enum. `apps/web` is on zod 4, where `z.enum()` is overloaded to absorb an enum-like object, and **`z.nativeEnum()` is deprecated**.
+- Never hand-write `z.enum(["A", "B"])` to mirror a DB-backed enum: it silently drifts from the schema. Import the enum from `@repo/db/generated/prisma/enums` and pass it to `z.enum()`.
+- `z.enum()` is also how you declare a local const array of string literals (`z.enum(ALLOWED_FILE_TYPES)`) that is not a Prisma enum. Same function, both cases.
+
+## Example
+
+```ts
+export const UpdateUserSchema = z.object({
+  id: z.string(),
+  name: z.string().optional(),
+  // other properties...
+});
+
+export type UpdateUserInput = z.infer<typeof UpdateUserSchema>;
+```
