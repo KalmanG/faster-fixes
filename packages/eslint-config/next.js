@@ -17,6 +17,10 @@ const enableAgentRules = process.env.ESLINT_AGENT_RULES === "1";
  * @type {import("eslint").Linter.Config}
  * */
 export const nextJsConfig = [
+  // Next.js and Fumadocs write these; they are build output, not source.
+  {
+    ignores: [".next/**", ".source/**", "next-env.d.ts"],
+  },
   ...baseConfig,
   js.configs.recommended,
   eslintConfigPrettier,
