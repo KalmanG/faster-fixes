@@ -1,35 +1,42 @@
-# agent.md
+## Approach
+
+- Think before acting. Read existing files before writing code.
+- Be concise in output but thorough in reasoning.
+- Prefer editing over rewriting whole files.
+- Do not re-read files you have already read unless the file may have changed.
+- Skip files over 100KB unless explicitly required.
+- Suggest running /cost when a session is running long to monitor cache ratio.
+- Recommend starting a new session when switching to an unrelated task.
+- Test your code before declaring done.
+- No sycophantic openers or closing fluff.
+- Keep solutions simple and direct.
+- User instructions always override this file.
 
 ## Non-negotiables
 
 - You are FORBIDDEN from deleting any files yourself.
 - If a file must be retired by you: keep an empty `_deprecated_*.ts(x)` replacement with a short comment.
 - The user MAY delete files. If a file is already deleted (shows as `deleted` in git status), do NOT restore it — include the deletion as-is in the commit.
-- Never edit `.env`, `.env.local`, or any `.env*` file.
 - If env vars change, update `.env.example` only.
 - Never run production database migrations (`pnpm migrate:prod`).
 - Only run development migrations (`pnpm migrate:dev`); production migration execution is user-managed.
 - Code identifiers, comments, filenames, schemas: English only.
 - User-facing UI copy: English only. Professional, clear, and concise — match the tone of serious developer tools (e.g., Vercel, Linear, Stripe). No marketing fluff, no casual language, no exclamation marks. Prefer precise, understated wording.
-- All `unstable_cache` usage must include `cacheTags` from `@/server/cache/cache-tags`.
+- Never use the em dash character (`—`) in user-facing text. Use a comma, colon, or period instead.
 
 ## Code comments
 
-- Comments exist to capture **decisions**, not describe code. A dev returning in 6 months should understand _why_ the code is this way, not _what_ it does.
-- Comment when: choosing one approach over an obvious alternative, working around a limitation, relying on non-obvious behavior, or enforcing a subtle business rule.
+- Add inline comments only when the logic is not self-evident — complex conditions, non-obvious side effects, tricky workarounds, or subtle business rules.
 - Never comment what the code plainly says (e.g. no `// get user` above `getUser()`).
 - Prefer a short inline `// why` over a multi-line block above a function.
 
 ## Critical conventions
 
-- Follow detailed project rules in `.claude/rules/rules-index.md`.
-- Naming:
-- `*.client.tsx` for client components.
-- `*.server.tsx` for server components.
-- `*.trpc.query.ts` for tRPC queries.
-- `*.trpc.mutation.ts` for tRPC mutations.
-- `*.schema.ts` for Zod schemas.
-- When a form is used for both create and edit: split into a dialog wrapper (fetches data, `matchQueryStatus`) and a pure form component (receives loaded data as props).
+All coding standards for this project live in the `coding-standards` skill at `.claude/skills/coding-standards/`.
+
+**Load that skill** before writing code, reviewing changes, or answering questions about conventions.
+
+- Use canonical domain terms defined in `docs/product/ubiquitous-language.md`.
 
 ## Required checks before done
 
