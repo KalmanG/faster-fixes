@@ -8,6 +8,8 @@
     "lint": "turbo run lint",
     "lint:agent-rules": "turbo run lint:agent-rules --filter=web",
     "typecheck": "turbo run typecheck",
+    "test": "turbo run test",
+    "test:watch": "turbo run test:watch",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
     "build:packages": "turbo run build --filter='@fasterfixes/*'",
     "check:packages": "pnpm build:packages && turbo run typecheck lint --filter='@fasterfixes/*' && pnpm publint",

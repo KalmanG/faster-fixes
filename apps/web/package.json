@@ -13,7 +13,9 @@
     "lint:agent-rules": "ESLINT_AGENT_RULES=1 eslint --max-warnings 0 .",
     "typecheck": "tsc --noEmit",
     "stripe:listen": "stripe listen --forward-to localhost:3000/api/auth/stripe/webhook",
-    "inngest": "pnpm dlx inngest-cli@latest dev"
+    "inngest": "pnpm dlx inngest-cli@latest dev",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "dependencies": {
     "@better-auth/stripe": "^1.5.4",
@@ -85,7 +87,9 @@
     "prettier": "^3.7.4",
     "prettier-plugin-tailwindcss": "^0.7.2",
     "remark-gfm": "^4.0.1",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "vite": "^8.3.0",
+    "vitest": "^5.0.1"
   },
   "pnpm": {
     "overrides": {
