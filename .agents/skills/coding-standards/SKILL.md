@@ -1,13 +1,30 @@
 ---
 name: coding-standards
-description: Tobalgo project coding conventions and rules for apps/web. Use when writing, refactoring, reviewing, or placing code in this repo: React/client components, tRPC services and routers, Zod schemas, TypeScript, Tailwind styling, file/folder placement, CRUD naming, forms, or error handling. Routes you to only the rule files your task needs so you do not load every rule at once.
+description: Faster Fixes project coding conventions and rules for apps/web. Use when writing, refactoring, reviewing, or placing code in this repo: React/client components, tRPC services and routers, Zod schemas, TypeScript, Tailwind styling, file/folder placement, CRUD naming, forms, or error handling. Routes you to only the rule files your task needs so you do not load every rule at once.
 ---
 
-# Tobalgo Coding Standards
+# Faster Fixes Coding Standards
 
 Conventions live as focused rule files in `rules/` next to this file. This skill is a
 **router**: read only the rule file(s) that match what you are about to do, then apply
 them. **Do not read every rule file.**
+
+## Migration in progress
+
+The web app is moving to the target architecture (`docs/architecture/target-architecture.md`) in
+five steps. The log lives in `docs/_migration/`: it records the convention baseline, which scopes
+are already locked, and what the next step needs.
+
+While the migration runs:
+
+- **New code follows the target architecture** described in these rule files.
+- **Inside a scope that has not been migrated yet, follow that folder's existing conventions.** Do
+  not mix the two in one folder: a half-converted scope is harder to finish than either convention
+  applied consistently.
+- `pnpm lint:agent-rules` reports the remaining convention violations as warnings. They are the
+  burn-down metric, not a task list: clear them when you migrate the scope.
+
+Delete this section when the migration ends.
 
 ## How to use
 
@@ -37,10 +54,10 @@ them. **Do not read every rule file.**
 ## Rule files
 
 - `rules/architecture.md` — app folder structure, two tiers, buckets, file placement, cross-domain imports.
-- `rules/backend.md` — `_services/` data/IO layer, verb vocabulary, transport-agnostic services, tRPC router, caching, client/server boundary.
+- `rules/backend.md` — `_services/` data/IO layer, verb vocabulary, transport-agnostic services, tRPC router, client/server boundary.
 - `rules/schemas.md` — Zod schema naming, placement, type extraction, Prisma enums.
 - `rules/frontend.md` — React component + client component patterns, Tailwind, `matchQueryStatus`, forms, user-facing copy.
-- `rules/errors.md` — the four error display channels, route boundaries, anti-patterns (ADR-0010).
+- `rules/errors.md` — the four error display channels, route boundaries, anti-patterns.
 - `rules/naming.md` — CRUD read/write verb vocabulary, resource and file naming.
 - `rules/typescript.md` — type definition and inference standards.
 - `rules/testing.md` — Vitest harness, colocated `*.test.ts`, test only `_services/`/`_helpers/` for now.

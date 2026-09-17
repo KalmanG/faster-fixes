@@ -1,6 +1,6 @@
 # Backend: services and tRPC layer
 
-The data/IO layer lives in a per-scope `_services/` folder; tRPC is thin transport at the scope root. Authority: `docs/adr/0009-server-file-conventions-services-over-suffix.md`. Folder placement and the bucket set are in [architecture.md](architecture.md). Schema conventions are in [schemas.md](schemas.md).
+The data/IO layer lives in a per-scope `_services/` folder; tRPC is thin transport at the scope root. Authority: `docs/architecture/migration-kit/adrs/server-file-conventions.md`. Folder placement and the bucket set are in [architecture.md](architecture.md). Schema conventions are in [schemas.md](schemas.md).
 
 ## The `_services/` folder
 
@@ -44,7 +44,7 @@ export const animalRouter = router({
 
 ## Helpers vs services vs types
 
-- **`_helpers/`** = pure **behavioral** functions only (no IO): formatters, label maps, calculators, slug generators, nuqs `search-params` parsers, `cache-tags` builders, and **pure predicates** that operate on already-loaded inputs.
+- **`_helpers/`** = pure **behavioral** functions only (no IO): formatters, label maps, calculators, slug generators, nuqs `search-params` parsers, and **pure predicates** that operate on already-loaded inputs.
 - **Predicates split by IO, not verb:** `isSubscriptionActive(sub)` (pure) → `_helpers/`; `hasActiveSubscription(userId)` (queries to answer) → `_services/`. A pure predicate must never fetch its own data; if it needs to, it has become an IO-predicate and moves to `_services/`.
 - **`_types/`** = standalone, hand-written, isomorphic shared types. A type derived from a service stays **in** that service file.
 
@@ -57,10 +57,6 @@ Placement follows the **domain decision, not the dependency**. Thin domain-agnos
 - A module-level `'use server'` directive belongs **only** in a `*.server.action.ts` file: it turns every export into a public endpoint. A server component needs no directive, and an infrastructure helper must be called through a service that checks who is asking.
 - A client file (`'use client'` / `*.client.tsx`) must **not** import from a `_services/` path — **except** `*.schema.ts` and **type-only imports** (`import type { … }`): TS erases those at compile time, so they cannot leak server code into the bundle, and the service return type is the type source of truth. For runtime values, use a tRPC hook or a server component instead.
 - Container hooks (`use-*.ts`) own form state + mutation + optimistic update + toast + invalidation, returning `{ form, onSubmit, isPending }`. They live in their owning `_features/` slice. Extract a hook only on real logic or reuse; a trivial single `useQuery` stays inline.
-
-## Caching
-
-- All `unstable_cache` usage must include `cacheTags` from `@/server/cache/cache-tags`.
 
 ## Enforced by ESLint
 

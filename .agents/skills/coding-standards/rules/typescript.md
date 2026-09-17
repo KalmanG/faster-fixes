@@ -19,4 +19,4 @@ Small, near-universal. Read for any `.ts` / `.tsx` work.
 ## Language
 
 - Code identifiers, comments, filenames, schemas: English only.
-- French is only for user-facing strings.
+- User-facing strings: English only. Tone rules are in [frontend.md](frontend.md).
