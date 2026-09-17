@@ -13,6 +13,9 @@ overrides:
 importers:
   .:
     devDependencies:
+      "@ai-hero/sandcastle":
+        specifier: ^0.12.0
+        version: 0.12.0
       "@changesets/changelog-github":
         specifier: ^1.0.1
         version: 1.0.1
@@ -640,6 +643,21 @@ importers:
         version: 5.0.1(@opentelemetry/api@1.9.0)(@types/node@25.0.10)(vite@8.3.0(@types/node@25.0.10)(esbuild@0.27.4)(jiti@2.6.1)(sass@1.77.4)(tsx@4.21.0)(yaml@2.9.1))
 
 packages:
+  "@ai-hero/sandcastle@0.12.0":
+    resolution:
+      {
+        integrity: sha512-kdQ414rM8t1QiWeqZ3Klz4KSd0PqQG4bRVuqGpRDUomWhojSZkEAc1tbcEcThVmBEaHkCt8LmYR49vqEPNIoYQ==,
+      }
+    hasBin: true
+    peerDependencies:
+      "@daytona/sdk": ^0.164.0
+      "@vercel/sandbox": ">=1.0.0"
+    peerDependenciesMeta:
+      "@daytona/sdk":
+        optional: true
+      "@vercel/sandbox":
+        optional: true
+
   "@alloc/quick-lru@5.2.0":
     resolution:
       {
@@ -15347,6 +15365,10 @@ packages:
       }
 
 snapshots:
+  "@ai-hero/sandcastle@0.12.0":
+    dependencies:
+      "@clack/prompts": 1.8.1
+
   "@alloc/quick-lru@5.2.0": {}
 
   "@ampproject/remapping@2.3.0":
