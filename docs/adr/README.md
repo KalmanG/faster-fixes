@@ -1,6 +1,6 @@
 # Architecture Decision Records
 
-This directory holds the architectural decisions for the Faster Fixes repo. Each ADR captures **one decision**, the alternatives that were considered, and the reasoning behind the choice — so a developer six months later can understand *why* the codebase looks the way it does.
+This directory holds the architectural decisions for the Faster Fixes repo. Each ADR captures **one decision**, the alternatives that were considered, and the reasoning behind the choice — so a developer six months later can understand _why_ the codebase looks the way it does.
 
 ## Conventions
 
@@ -41,3 +41,6 @@ What changes because of this? What new constraints does it create?
 - [ADR-0004](./0004-programmatic-blog-images.md) — Programmatic blog images.
 - [ADR-0005](./0005-widget-identity-public-id-origin-auth.md) — Widget identifies its Project by a public ID, secured by allowed origins + reviewer token, not a secret API key.
 - [ADR-0006](./0006-slack-uses-custom-bot-install-oauth.md) — Slack integration uses a custom bot-install OAuth route, not Better Auth social login.
+- [ADR-0007](./0007-agent-api-rate-limit-is-an-abuse-backstop.md) — Agent API rate limit is an abuse backstop keyed per Organization, not an authorization or metering control.
+- [ADR-0008](./0008-jira-oauth-uses-user-bound-3lo-tokens.md) — Jira Cloud authorizes via OAuth 2.0 (3LO) user-bound tokens, a deliberate deviation from ADR-0002.
+- [ADR-0009](./0009-diagnostic-trail-capture.md) — The Widget captures a Diagnostic Trail of recent console and network activity, redacted client-side.

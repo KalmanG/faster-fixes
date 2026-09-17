@@ -8,7 +8,7 @@ To help agencies reproduce reported bugs, the Widget captures a **Diagnostic Tra
 the recent console and network history — and attaches it to each Feedback. Capture works
 by monkey-patching `console.*`, `fetch`, and `XMLHttpRequest` at Widget mount and pushing
 into a fixed-size Ring Buffer; submitting a Feedback snapshots the buffer. There is no way
-to recover events from *before* mount, so the Trail is the recent tail, not the full session.
+to recover events from _before_ mount, so the Trail is the recent tail, not the full session.
 
 ## Scope (v1)
 
@@ -18,7 +18,7 @@ to recover events from *before* mount, so the Trail is the recent tail, not the 
 
 ## Privacy
 
-- **Redaction is client-side**, before the Trail leaves the page: sensitive URL query-param *values* (`token`, `key`, `secret`, `password`, `auth`, `session`, `signature`, `email`, `access_token`, …) are replaced with `[redacted]`; keys and host/path are kept. The denylist is hard-coded in v1.
+- **Redaction is client-side**, before the Trail leaves the page: sensitive URL query-param _values_ (`token`, `key`, `secret`, `password`, `auth`, `session`, `signature`, `email`, `access_token`, …) are replaced with `[redacted]`; keys and host/path are kept. The denylist is hard-coded in v1.
 - **Console messages are stored raw** (truncated only). Pattern-scrubbing free-text logs over-redacts and destroys debugging value. Documented limitation: a client logging secrets to the console will have them captured.
 - The Widget's own traffic to the Faster Fixes API is excluded from the Network stream.
 
