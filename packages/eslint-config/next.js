@@ -120,7 +120,8 @@ export const nextJsConfig = [
     },
   },
   {
-    files: ["**/*.{ts,tsx,js,jsx}"],
+    // Class strings show up in every file type the app lints, so this one is
+    // not scoped to a glob.
     rules: {
       "local/no-raw-tailwind-colors": enableAgentRules
         ? [
@@ -149,7 +150,7 @@ export const nextJsConfig = [
     },
   },
   {
-    files: ["**/src/app/_features/**/*.{ts,tsx}"],
+    files: ["**/src/**/*.{ts,tsx}"],
     rules: {
       "local/require-use-client-suffix": enableAgentRules
         ? [
@@ -177,6 +178,7 @@ export const nextJsConfig = [
     files: ["**/*.schema.ts"],
     rules: {
       "local/require-schema-conventions": agent,
+      "local/schema-must-be-pure-zod": agent,
     },
   },
 ];

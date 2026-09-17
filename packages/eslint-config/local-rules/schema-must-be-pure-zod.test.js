@@ -1,0 +1,95 @@
+import { RuleTester } from "eslint";
+import tseslint from "typescript-eslint";
+import { describe, it } from "vitest";
+
+import { schemaMustBePureZodRule } from "./schema-must-be-pure-zod.js";
+
+RuleTester.describe = describe;
+RuleTester.it = it;
+
+// `importKind` on an import declaration only exists under the TS parser.
+const ruleTester = new RuleTester({
+  languageOptions: {
+    parser: tseslint.parser,
+    ecmaVersion: 2022,
+    sourceType: "module",
+  },
+});
+
+ruleTester.run("schema-must-be-pure-zod", schemaMustBePureZodRule, {
+  valid: [
+    {
+      name: "a file that is not a schema may import server code",
+      filename: "/repo/apps/web/src/app/_services/invoice.service.ts",
+      code: `import { db } from "@repo/db";\n`,
+    },
+    {
+      name: "a schema importing zod",
+      filename: "/repo/apps/web/src/app/_services/invoice.schema.ts",
+      code: `import { z } from "zod";\n`,
+    },
+    {
+      name: "a schema importing another schema by relative path",
+      filename: "/repo/apps/web/src/app/_services/invoice.schema.ts",
+      code: `import { LineSchema } from "./line.schema";\n`,
+    },
+    {
+      name: "a schema importing a schema that lives under another _services folder",
+      filename: "/repo/apps/web/src/app/_services/invoice.schema.ts",
+      code: `import { LineSchema } from "@/app/_domains/billing/_services/line.schema";\n`,
+    },
+    {
+      name: "a schema importing generated Prisma enums",
+      filename: "/repo/apps/web/src/app/_services/invoice.schema.ts",
+      code: `import { InvoiceStatus } from "@repo/db/generated/prisma/enums";\n`,
+    },
+    {
+      name: "a schema with a type-only import of server code",
+      filename: "/repo/apps/web/src/app/_services/invoice.schema.ts",
+      code: `import type { Session } from "@/server/auth";\n`,
+    },
+    {
+      name: "a schema outside _services importing a same-directory helper",
+      filename: "/repo/apps/web/src/app/_helpers/invoice.schema.ts",
+      code: `import { formatAmount } from "./format";\n`,
+    },
+    {
+      name: "a schema matched by ignorePathPatterns",
+      filename: "/repo/apps/web/src/app/_services/legacy/invoice.schema.ts",
+      code: `import { db } from "@repo/db";\n`,
+      options: [{ ignorePathPatterns: ["/_services/legacy/"] }],
+    },
+  ],
+  invalid: [
+    {
+      name: "a schema importing from @/server/",
+      filename: "/repo/apps/web/src/app/_services/invoice.schema.ts",
+      code: `import { auth } from "@/server/auth";\n`,
+      errors: [{ messageId: "serverImport" }],
+    },
+    {
+      name: "a schema importing the Prisma client package",
+      filename: "/repo/apps/web/src/app/_services/invoice.schema.ts",
+      code: `import { Prisma } from "@prisma/client";\n`,
+      errors: [{ messageId: "serverImport" }],
+    },
+    {
+      name: "a schema importing the database package root",
+      filename: "/repo/apps/web/src/app/_services/invoice.schema.ts",
+      code: `import { db } from "@repo/db";\n`,
+      errors: [{ messageId: "serverImport" }],
+    },
+    {
+      name: "a schema deep-importing a non-schema service module",
+      filename: "/repo/apps/web/src/app/_services/invoice.schema.ts",
+      code: `import { getInvoice } from "@/app/_domains/billing/_services/invoice.service";\n`,
+      errors: [{ messageId: "siblingService" }],
+    },
+    {
+      name: "a schema inside _services importing a same-directory sibling",
+      filename: "/repo/apps/web/src/app/_services/invoice.schema.ts",
+      code: `import { getInvoice } from "./invoice.service";\n`,
+      errors: [{ messageId: "siblingService" }],
+    },
+  ],
+});

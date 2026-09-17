@@ -119,10 +119,13 @@ export const noRawTailwindColorsRule = {
     },
   },
   create(context) {
-    const [{ allowPatterns = [], ignorePathPatterns = [] } = {}] = context.options;
+    const [{ allowPatterns = [], ignorePathPatterns = [] } = {}] =
+      context.options;
     const filename = context.filename;
 
-    if (ignorePathPatterns.some((pattern) => new RegExp(pattern).test(filename))) {
+    if (
+      ignorePathPatterns.some((pattern) => new RegExp(pattern).test(filename))
+    ) {
       return {};
     }
 
@@ -144,7 +147,10 @@ export const noRawTailwindColorsRule = {
           return;
         }
 
-        if (node.value.type === "Literal" && typeof node.value.value === "string") {
+        if (
+          node.value.type === "Literal" &&
+          typeof node.value.value === "string"
+        ) {
           reportRawClasses(node.value.value, node.value);
           return;
         }
