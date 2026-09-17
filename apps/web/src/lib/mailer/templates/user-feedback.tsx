@@ -34,12 +34,11 @@ export const UserFeedback = ({
               </Text>
 
               <Text className="mt-0 mb-[24px] text-[16px] leading-[24px] text-foreground">
-                <strong>{senderName}</strong> ({senderEmail}) sent
-                feedback:
+                <strong>{senderName}</strong> ({senderEmail}) sent feedback:
               </Text>
 
               <Section className="mb-[32px] rounded-[8px] bg-muted px-[24px] py-[16px]">
-                <Text className="mt-0 mb-0 text-[16px] leading-[24px] text-foreground whitespace-pre-line">
+                <Text className="mt-0 mb-0 text-[16px] leading-[24px] whitespace-pre-line text-foreground">
                   {message}
                 </Text>
               </Section>
