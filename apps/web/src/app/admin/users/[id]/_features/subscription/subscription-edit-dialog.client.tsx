@@ -3,6 +3,7 @@
 import { useTRPC } from "@/lib/trpc/trpc-client";
 import {
   SUBSCRIPTION_PLANS,
+  SubscriptionPlanName,
   SubscriptionStatus,
 } from "@/server/auth/config/subscription-plans";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -47,6 +48,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { UserOrganizationSelect } from "../organization-select/user-organization-select.client";
+import { GetSubscriptionOutput } from "./get-subscription.trpc.query";
 import {
   UpdateSubscriptionInputs,
   UpdateSubscriptionSchema,
@@ -54,7 +56,7 @@ import {
 
 interface SubscriptionEditDialogProps {
   userId: string;
-  subscription: any;
+  subscription: NonNullable<GetSubscriptionOutput>;
 }
 
 export function SubscriptionEditDialog({
@@ -78,7 +80,7 @@ export function SubscriptionEditDialog({
           trpc.admin.users.subscription.get.queryFilter(),
         );
       },
-      onError: (error: any) => {
+      onError: (error) => {
         toast.error(
           error.message || "Failed to update subscription",
         );
@@ -91,7 +93,11 @@ export function SubscriptionEditDialog({
     defaultValues: {
       id: subscription?.id,
       organizationId: subscription?.organizationId || "",
-      plan: (subscription?.plan as any) || subscriptionPlans[0]?.name,
+      // The subscription plan column is a free-form string in the database, so
+      // an admin override can carry a value outside the current plan names.
+      plan:
+        (subscription?.plan as SubscriptionPlanName) ||
+        subscriptionPlans[0]?.name,
       status:
         (subscription?.status as SubscriptionStatus) ||
         SubscriptionStatus.Active,
@@ -114,7 +120,7 @@ export function SubscriptionEditDialog({
     mode: "onChange",
   });
 
-  const onSubmit = async (data: any) => {
+  const onSubmit = async (data: UpdateSubscriptionInputs) => {
     if (!data.id) {
       toast.error("Missing subscription ID");
       return;
@@ -204,7 +210,7 @@ export function SubscriptionEditDialog({
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {subscriptionPlans.map((plan: any) => (
+                      {subscriptionPlans.map((plan) => (
                         <SelectItem key={plan.name} value={plan.name}>
                           {plan.name}
                         </SelectItem>

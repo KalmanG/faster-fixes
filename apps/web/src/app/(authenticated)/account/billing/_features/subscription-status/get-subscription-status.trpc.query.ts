@@ -5,7 +5,7 @@ import { inferProcedureOutput, TRPCError } from "@trpc/server";
 import { headers } from "next/headers";
 
 export const getSubscriptionStatus = protectedProcedure.query(
-  async ({ input }) => {
+  async () => {
     try {
       const activeOrganization = await auth.api.getFullOrganization({
         headers: await headers(),

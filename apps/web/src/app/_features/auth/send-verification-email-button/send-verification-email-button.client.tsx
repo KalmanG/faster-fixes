@@ -42,10 +42,11 @@ export function SendVerificationEmailButton({
           );
         },
       });
-    } catch (error: any) {
+    } catch (error) {
       toast.error(
-        error?.message ||
-        "An error occurred while validating the email",
+        error instanceof Error
+          ? error.message
+          : "An error occurred while validating the email",
       );
     }
   };

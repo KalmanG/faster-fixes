@@ -32,11 +32,7 @@ import { ManageSubscriptionButton } from "../manage-subscription/manage-subscrip
 import { BillingDetailsCard } from "./billing-details-card.client";
 import { StatusIndicators } from "./status-indicators.client";
 
-interface CurrentPlanProps {
-  organizationId: string;
-}
-
-export function CurrentPlanCard({ organizationId }: CurrentPlanProps) {
+export function CurrentPlanCard() {
   const trpc = useTRPC();
 
   const getActiveSubscriptionQuery =

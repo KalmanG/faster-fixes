@@ -5,7 +5,7 @@ import { inferProcedureOutput, TRPCError } from "@trpc/server";
 import { headers } from "next/headers";
 
 export const createBillingPortal = protectedProcedure.mutation(
-  async ({ input }) => {
+  async () => {
     const activeOrganization = await auth.api.getFullOrganization({
       headers: await headers(),
     });

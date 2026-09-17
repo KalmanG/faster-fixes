@@ -64,20 +64,6 @@ export function ArchiveTab() {
     }),
   );
 
-  const bulkHardDeleteMutation = useMutation(
-    trpc.authenticated.projects.feedback.bulkHardDelete.mutationOptions({
-      onSuccess: () => {
-        queryClient.invalidateQueries({
-          queryKey: trpc.authenticated.projects.feedback.listArchived.queryKey({ projectId }),
-        });
-        toast.success("Feedback deleted permanently.");
-      },
-      onError: () => {
-        toast.error("Failed to delete feedback.");
-      },
-    }),
-  );
-
   const columns: ColumnDef<ArchivedItem>[] = React.useMemo(
     () => [
       {

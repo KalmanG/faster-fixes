@@ -3,7 +3,7 @@ import { protectedProcedure } from "@/server/trpc/trpc";
 import { inferProcedureOutput, TRPCError } from "@trpc/server";
 
 export const getActiveSubscription = protectedProcedure.query(
-  async ({ input }) => {
+  async () => {
     try {
       // Fetch active subscriptions for the organization using better-auth Stripe plugin
       const activeSubscription = await getUserActiveSubscription();

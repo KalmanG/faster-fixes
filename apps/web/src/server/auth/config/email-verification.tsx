@@ -22,7 +22,7 @@ export const emailVerification: NonNullable<
       data: { userId: user.id },
     });
   },
-  sendVerificationEmail: async ({ user, url }, ctx) => {
+  sendVerificationEmail: async ({ user, url }) => {
     const dbUser = await prisma.user.findUnique({
       where: { id: user.id },
     });

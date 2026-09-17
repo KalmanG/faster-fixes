@@ -11,7 +11,7 @@ export const deleteAccount = protectedProcedure
     try {
       const { password } = input;
 
-      const result = await auth.api.deleteUser({
+      await auth.api.deleteUser({
         body: {
           password,
         },

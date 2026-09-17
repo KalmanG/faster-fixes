@@ -11,7 +11,7 @@ export const emailAndPassword: NonNullable<
   requireEmailVerification: true,
   autoSignIn: true,
 
-  sendResetPassword: async ({ user, url, token }, request) => {
+  sendResetPassword: async ({ user, url }) => {
     try {
       const normalizedEmail = user.email.toLowerCase().trim();
       const from = SENDER_EMAIL;

@@ -157,7 +157,7 @@ export function SubscriptionCreateDialog({
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {subscriptionPlans.map((plan: any) => (
+                        {subscriptionPlans.map((plan) => (
                           <SelectItem key={plan.name} value={plan.name}>
                             {plan.name}
                           </SelectItem>

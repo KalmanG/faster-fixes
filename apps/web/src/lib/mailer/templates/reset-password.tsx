@@ -1,4 +1,3 @@
-import { getAppUrl } from "@/utils/url/get-app-url";
 import {
   Body,
   Button,
@@ -16,8 +15,6 @@ import { emailTailwindConfig } from "./tailwind.config";
 interface ResetPasswordProps {
   resetPasswordLink?: string;
 }
-
-const baseUrl = getAppUrl();
 
 export const ResetPassword = ({
   resetPasswordLink,
