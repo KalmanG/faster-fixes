@@ -47,6 +47,8 @@ Sign up at `https://<host>/signup` — the first account is the admin.
 - `apps/web/src/server/storage/index.ts` — R2 client created on first use, for
   the same reason as the mailer (screenshots are optional; uploads that fail
   are already non-fatal).
+- `apps/web/src/server/github/github-app.ts` — GitHub App credentials read
+  when an Octokit is created, not at import (the App is optional).
 - `apps/web/src/server/auth/{index,plugins/stripe}.ts` — the Stripe auth
   plugin is registered only when `NEXT_PUBLIC_IS_CLOUD=true`; self-hosted
   installs already get the full plan without billing, and the plugin demanded a
