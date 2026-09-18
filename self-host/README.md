@@ -34,6 +34,16 @@ The app container runs `prisma migrate deploy` on every start, so upgrades are
 
 Sign up at `https://<host>/signup` — the first account is the admin.
 
+Inngest syncs the app's functions from `--sdk-url` at start; if it came up
+before the app did, trigger the sync once:
+
+```bash
+docker exec faster-fixes-app node -e 'fetch("http://localhost:3000/api/inngest",{method:"PUT"}).then(r=>r.text()).then(console.log)'
+```
+
+Runtime footprint observed on first deploy: app ~135 MB, Postgres ~36 MB,
+Inngest ~50 MB.
+
 ## Source patches on this branch
 
 - `apps/web/next.config.mjs` — `output: "standalone"` so the image is small.
