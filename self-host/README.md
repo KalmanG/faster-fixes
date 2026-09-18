@@ -41,6 +41,9 @@ Sign up at `https://<host>/signup` — the first account is the admin.
   otherwise the standard `pg` adapter (upstream used Neon for all of production).
 - `apps/web/src/lib/mailer/constants.ts` — `MAIL_FROM` env override for the
   sender (Resend without a verified domain must send from `onboarding@resend.dev`).
+- `apps/web/src/lib/mailer/client.ts` — mailer is created on first use, not at
+  import; the Resend SDK throws without a key, which broke `next build` and
+  would crash an instance that hasn't set up email yet.
 - `apps/web/src/server/storage/{build-asset-url,resolve-s3-url}.ts` — read
   `STORAGE_BASE_URL` at runtime; `NEXT_PUBLIC_STORAGE_BASE_URL` is inlined at
   build time and can't be set per-deployment on a prebuilt image.
