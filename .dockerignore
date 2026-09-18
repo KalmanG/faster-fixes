@@ -1,0 +1,13 @@
+node_modules
+**/node_modules
+**/.next
+**/dist
+**/.turbo
+.git
+.env*
+!.env.example
+docs
+.agents
+.claude
+.vscode
+self-host/data

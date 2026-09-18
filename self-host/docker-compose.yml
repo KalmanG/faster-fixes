@@ -1,0 +1,68 @@
+# Self-hosted Faster Fixes: app + Postgres + Inngest, behind an existing
+# Traefik (Dokploy) on the `dokploy-network`. Copy self-host/.env.example to
+# self-host/.env and fill it in, then: docker compose up -d
+#
+# Nothing here publishes a host port; Traefik reaches `faster-fixes-app`
+# over the shared network via self-host/traefik.yml (drop it in
+# /etc/dokploy/traefik/dynamic/faster-fixes.yml and edit the hostname).
+
+name: faster-fixes
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: faster-fixes-db
+    restart: unless-stopped
+    mem_limit: 512m
+    environment:
+      POSTGRES_DB: fasterfixes
+      POSTGRES_USER: fasterfixes
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U fasterfixes -d fasterfixes"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  inngest:
+    image: inngest/inngest:latest
+    container_name: faster-fixes-inngest
+    restart: unless-stopped
+    mem_limit: 512m
+    command: >
+      inngest start
+        --event-key ${INNGEST_EVENT_KEY:?set INNGEST_EVENT_KEY in .env}
+        --signing-key ${INNGEST_SIGNING_KEY:?set INNGEST_SIGNING_KEY in .env}
+        --sdk-url http://app:3000/api/inngest
+        --sqlite-dir /data
+    volumes:
+      - inngest-data:/data
+
+  app:
+    image: ${FF_IMAGE:-ghcr.io/kalmang/faster-fixes:latest}
+    container_name: faster-fixes-app
+    restart: unless-stopped
+    mem_limit: 1g
+    depends_on:
+      db:
+        condition: service_healthy
+      inngest:
+        condition: service_started
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql://fasterfixes:${POSTGRES_PASSWORD}@db:5432/fasterfixes?schema=public
+      INNGEST_BASE_URL: http://inngest:8288
+      INNGEST_DEV: "0"
+    networks:
+      - default
+      - dokploy-network
+
+volumes:
+  db-data:
+  inngest-data:
+
+networks:
+  dokploy-network:
+    external: true

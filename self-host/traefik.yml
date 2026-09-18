@@ -1,0 +1,26 @@
+# Traefik dynamic config for the self-hosted Faster Fixes instance.
+# Copy to /etc/dokploy/traefik/dynamic/faster-fixes.yml (Traefik watches the
+# directory) and replace the hostname with your DOMAIN_NAME.
+http:
+  routers:
+    faster-fixes-router:
+      rule: Host(`feedback.example.com`)
+      service: faster-fixes-service
+      middlewares:
+        - redirect-to-https
+      entryPoints:
+        - web
+    faster-fixes-router-websecure:
+      rule: Host(`feedback.example.com`)
+      service: faster-fixes-service
+      middlewares: []
+      entryPoints:
+        - websecure
+      tls:
+        certResolver: letsencrypt
+  services:
+    faster-fixes-service:
+      loadBalancer:
+        servers:
+          - url: http://faster-fixes-app:3000
+        passHostHeader: true

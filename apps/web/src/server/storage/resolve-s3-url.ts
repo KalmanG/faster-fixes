@@ -1,4 +1,5 @@
-const STORAGE_BASE_URL = process.env.NEXT_PUBLIC_STORAGE_BASE_URL ?? "";
+const STORAGE_BASE_URL =
+  process.env.STORAGE_BASE_URL ?? process.env.NEXT_PUBLIC_STORAGE_BASE_URL ?? "";
 
 /**
  * Resolves an S3 key to a full URL.

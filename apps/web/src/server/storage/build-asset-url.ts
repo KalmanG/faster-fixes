@@ -13,7 +13,9 @@ export function buildAssetUrl(asset: AssetForUrl): string {
     case "s3":
       return `https://${asset.bucket}.s3.${process.env.AWS_REGION}.amazonaws.com/${asset.key}`;
     case "r2":
-      return `${process.env.NEXT_PUBLIC_STORAGE_BASE_URL}/${asset.key}`;
+      // STORAGE_BASE_URL is read at runtime (prebuilt Docker images can't bake
+      // the NEXT_PUBLIC_ value in); the public name stays as the fallback.
+      return `${process.env.STORAGE_BASE_URL ?? process.env.NEXT_PUBLIC_STORAGE_BASE_URL}/${asset.key}`;
     default:
       throw new Error(`Unsupported storage provider: ${asset.provider}`);
   }

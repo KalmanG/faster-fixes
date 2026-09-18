@@ -2,6 +2,8 @@ import { createMDX } from "fumadocs-mdx/next";
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // Self-hosted Docker image copies .next/standalone (see Dockerfile).
+  output: "standalone",
   transpilePackages: ["@workspace/ui"],
   typedRoutes: true,
 
