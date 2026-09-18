@@ -44,6 +44,9 @@ Sign up at `https://<host>/signup` — the first account is the admin.
 - `apps/web/src/lib/mailer/client.ts` — mailer is created on first use, not at
   import; the Resend SDK throws without a key, which broke `next build` and
   would crash an instance that hasn't set up email yet.
+- `apps/web/src/server/storage/index.ts` — R2 client created on first use, for
+  the same reason as the mailer (screenshots are optional; uploads that fail
+  are already non-fatal).
 - `apps/web/src/server/auth/{index,plugins/stripe}.ts` — the Stripe auth
   plugin is registered only when `NEXT_PUBLIC_IS_CLOUD=true`; self-hosted
   installs already get the full plan without billing, and the plugin demanded a
