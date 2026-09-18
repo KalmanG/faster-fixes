@@ -1,9 +1,16 @@
 import { SUBSCRIPTION_PLANS } from "@/server/auth/config/subscription-plans";
 import { stripeApi } from "@/server/stripe";
 import { stripe } from "@better-auth/stripe";
+import { isCloud } from "@/utils/environment/env";
 import { prisma } from "@workspace/db";
 
-if (process.env.NODE_ENV === "production" && !process.env.STRIPE_WEBHOOK_SIGNING_SECRET) {
+// Billing only exists on the hosted cloud version; self-hosted installs never
+// register this plugin (see server/auth/index.ts), so don't demand its secret.
+if (
+  isCloud() &&
+  process.env.NODE_ENV === "production" &&
+  !process.env.STRIPE_WEBHOOK_SIGNING_SECRET
+) {
   throw new Error("STRIPE_WEBHOOK_SIGNING_SECRET is required in production");
 }
 

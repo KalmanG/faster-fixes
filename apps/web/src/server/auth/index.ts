@@ -10,6 +10,7 @@ import { emailVerification } from "./config/email-verification";
 import { customSessionPlugin } from "./plugins/custom-session";
 import { organizationPlugin } from "./plugins/organization";
 import { stripePlugin } from "./plugins/stripe";
+import { isCloud } from "@/utils/environment/env";
 
 export const auth = betterAuth({
   database: prismaAdapter(prisma, {
@@ -65,7 +66,9 @@ export const auth = betterAuth({
     customSessionPlugin,
     admin(),
     organizationPlugin,
-    stripePlugin,
+    // Self-hosted instances resolve to the full plan without billing
+    // (resolveOrganizationPlan), so skip Stripe entirely there.
+    ...(isCloud() ? [stripePlugin] : []),
     lastLoginMethod(),
     nextCookies(), // must be last plugin of the array
   ],
