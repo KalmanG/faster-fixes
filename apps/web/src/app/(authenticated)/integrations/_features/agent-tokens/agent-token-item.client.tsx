@@ -43,6 +43,8 @@ function formatScopes(scopes: string[]): string {
           return "Update status";
         case "feedbacks:create":
           return "Create";
+        case "reviewers:manage":
+          return "Reviewers";
         default:
           return s;
       }

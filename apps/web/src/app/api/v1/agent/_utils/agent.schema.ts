@@ -16,6 +16,17 @@ export const UpdateFeedbackStatusSchema = z.object({
 
 export const FeedbackIdSchema = z.string().uuid();
 
+export const ListReviewersQuerySchema = z.object({
+  project: z.string().min(1),
+});
+
+export const CreateReviewerAgentSchema = z.object({
+  project: z.string().min(1),
+  name: z.string().trim().min(1).max(100),
+});
+
+export const ReviewerIdSchema = z.string().uuid();
+
 const FeedbackItemSchema = z.object({
   comment: z.string().trim().min(1),
   pageUrl: z.url(),

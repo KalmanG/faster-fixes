@@ -111,12 +111,71 @@ If a GitHub issue is linked, the status change is automatically synced.
 
 ---
 
+## Reviewers
+
+Reviewers are the people who leave feedback through the widget; each has a
+token that gates submissions (see [Reviewer Tokens](/docs/concepts/reviewer-tokens)).
+These endpoints need the `reviewers:manage` scope.
+
+### List reviewers
+
+```
+GET /reviewers?project=proj_xxx
+```
+
+```json
+{
+  "reviewers": [
+    { "id": "uuid", "name": "Sarah", "isActive": true, "feedbackCount": 3, "createdAt": "2025-01-15T10:30:00Z" }
+  ],
+  "count": 1
+}
+```
+
+Tokens are stored hashed and are never returned here.
+
+### Create a reviewer
+
+```
+POST /reviewers
+Content-Type: application/json
+```
+
+```json
+{ "project": "proj_xxx", "name": "Sarah" }
+```
+
+Response (`201`) - the `token` and `shareUrl` are shown **once**:
+
+```json
+{
+  "id": "uuid",
+  "name": "Sarah",
+  "isActive": true,
+  "createdAt": "2025-01-15T10:30:00Z",
+  "token": "…",
+  "shareUrl": "https://myapp.com?ff_token=…"
+}
+```
+
+### Revoke a reviewer
+
+```
+DELETE /reviewers/:id
+```
+
+Sets `isActive` to `false` (their token stops working; their feedback stays).
+Returns `{ "id", "name", "isActive": false, "updatedAt" }`.
+
+---
+
 ## Rate limits
 
 | Action         | Limit             |
 | -------------- | ----------------- |
 | List feedbacks | 200 requests/hour |
 | Update status  | 50 requests/hour  |
+| Reviewers      | read 200/hour, create/revoke 50/hour |
 
 ## Required scopes
 

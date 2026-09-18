@@ -24,6 +24,7 @@ const AVAILABLE_SCOPES = [
   { value: "feedbacks:read", label: "Read feedbacks" },
   { value: "feedbacks:update_status", label: "Update feedback status" },
   { value: "feedbacks:create", label: "Create feedbacks" },
+  { value: "reviewers:manage", label: "Manage reviewers" },
 ] as const;
 
 export function CreateAgentTokenDialog() {
@@ -59,6 +60,7 @@ export function CreateAgentTokenDialog() {
       scopes: scopes as (
         | "feedbacks:read"
         | "feedbacks:update_status"
+        | "reviewers:manage"
         | "feedbacks:create"
       )[],
     });
